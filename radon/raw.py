@@ -153,7 +153,6 @@ def _get_all_tokens(line, lines, use_parso=False, python_version=None):
         except tokenize.TokenError as e:
             # A multi-line string or statement has been encountered:
             # start adding lines and stop when tokenize stops complaining
-            print(e)
             pass
         else:
             if not any(t[0] == tokenize.ERRORTOKEN for t in tokens):
@@ -287,39 +286,3 @@ def analyze(source, use_parso=False, python_version=None):
 
     loc = sloc + blank + multi + single_comments
     return Module(loc, lloc, sloc, comments, multi, blank, single_comments)
-
-
-if __name__ == "__main__":
-    code_001 = r'''
-    def function():
-        """ docstring continued by blank line is not a single-line comment """ \
-
-        pass
-    '''
-
-    print('python tokenize')
-    sl = list(_generate(code_001))
-    print("tokens: ", len(sl))
-    for s in sl:
-        try:
-            sp = str(s)
-        except:
-            sp = None
-        # print("\t", type(s), sp)
-
-    print('parso tokenize')
-    sl = list(_generate_parso(code_001))
-    print("tokens: ", len(sl))
-    for s in sl:
-        try:
-            sp = str(s)
-        except:
-            sp = None
-
-        # print("\t", type(s), sp)
-
-    print("analyze parso=False")
-    print(analyze(code_001, use_parso=False))
-
-    print("analyze parso=True")
-    print(analyze(code_001, use_parso=True))
