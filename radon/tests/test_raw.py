@@ -3,7 +3,7 @@ import textwrap
 import pytest
 
 from radon.raw import *
-
+from radon.raw import _generate_parso
 
 dedent = lambda code: textwrap.dedent(code).strip()
 
@@ -41,6 +41,15 @@ def test_find(code, result):
     else:
         assert _find(code, OP, ':') == result
 
+
+@pytest.mark.parametrize('code,result', FIND_CASES)
+def test_find_parso(code, result):
+    code = _generate_parso(dedent(code))
+    if result is None:
+        with pytest.raises(ValueError):
+            _find(code, OP, ':')
+    else:
+        assert _find(code, OP, ':') == result
 
 LOGICAL_LINES_CASES = [
     ('''
@@ -135,6 +144,11 @@ def test_logical(code, expected_number_of_lines):
     code = _generate(dedent(code))
     assert _logical(code) == expected_number_of_lines
 
+
+@pytest.mark.parametrize('code,expected_number_of_lines', LOGICAL_LINES_CASES)
+def test_logical_parso(code, expected_number_of_lines):
+    code = _generate_parso(dedent(code))
+    assert _logical(code) == expected_number_of_lines
 
 ANALYZE_CASES = [
     ('''
@@ -344,5 +358,20 @@ def test_analyze(code, expected):
             analyze(code)
     else:
         result = analyze(code)
+        assert result == Module(*expected)
+        assert result.loc == result.blank + result.sloc + result.single_comments + result.multi
+
+
+@pytest.mark.parametrize('code,expected', ANALYZE_CASES)
+def test_analyze_parso(code, expected):
+    code = dedent(code)
+
+    try:
+        len(expected)
+    except:
+        with pytest.raises(expected):
+            analyze(code, use_parso=True)
+    else:
+        result = analyze(code, use_parso=True)
         assert result == Module(*expected)
         assert result.loc == result.blank + result.sloc + result.single_comments + result.multi
